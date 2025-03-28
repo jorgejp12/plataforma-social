@@ -7,6 +7,7 @@ Red Social Gamer es una plataforma diseñada para conectar jugadores, compartir 
 Características Principales
 
 🏆 Registro e inicio de sesión con autenticación segura.
+link de notions :https://www.notion.so/Gesti-n-de-proyecto-con-Scrum-1c4bc7d8dd0c8033abb4ed863c864dbc?pvs=1
 
 💬 Publicaciones y comentarios para compartir logros y discutir estrategias.
 
