@@ -5,10 +5,9 @@ from conexiones import *
 class CommentBox(Container):
     """Widget para mostrar y agregar comentarios a una publicación."""
     
-    def __init__(self, pub_id: str, comments: list, user_id: str, autor: str, id: str = None):  # Agregamos id como parámetro opcional
+    def __init__(self, pub_id: str, comments: list, autor: str, id: str = None):  # Agregamos id como parámetro opcional
         self.pub_id = pub_id
         self.comments_data = comments or []
-        self.user_id = user_id
         self.autor = autor
         super().__init__(id=id, classes="comments-box_")  # Pasamos el id al padre
     
@@ -38,7 +37,7 @@ class CommentBox(Container):
             guardar_comentario(self.pub_id, self.autor, comment_text)
             
             # Agregar el comentario a la lista de comentarios visualmente
-            new_comment = Static(f"Usuario {self.user_id}: {comment_text}")
+            new_comment = Static(f"Usuario {self.autor}: {comment_text}")
             comments_list = self.query_one("#comments-list", Vertical)
             comments_list.mount(new_comment)  # Agrega el comentario al contenedor
             

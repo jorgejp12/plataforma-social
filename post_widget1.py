@@ -6,18 +6,17 @@ from conexiones import *
 from comentario_widget import CommentBox
 
 class PublicacionWidget(Container):
-    def __init__(self, pub_id: str, id_usuario: str, autor: str, contenido: str, fecha: str, 
-                 likes: int = 0, comentarios: int = 0, 
-                 reacciones: list = None):
+    def __init__(self, pub_id: str, autor_post: str, perfil: str, autor:str,contenido: str, fecha: str, likes: int = 0, comentarios: int = 0, reacciones: list = None):
         self.pub_id = pub_id
-        self.id_usuario = id_usuario
-        self.autor = autor
+        self.autor_post = autor_post
         self.contenido = contenido
         self.fecha = fecha
         self.likes = likes
         self.comentarios = len(comentarios)
         self.reacciones = reacciones if reacciones is not None else []
-        self.id_usuario = id_usuario
+        self.perfil = perfil
+        self.autor = autor
+        
         self.showing_comments = False
         self.comentarios_data = comentarios # Lista para almacenar los comentarios
         super().__init__(id=f"pub_{pub_id}")
@@ -25,7 +24,7 @@ class PublicacionWidget(Container):
     def compose(self) -> ComposeResult:
         # Encabezado con autor y fecha
         with Container():
-            yield Static(f"Autor: {self.autor.ljust(50, ' ')}{self.fecha}")
+            yield Static(f"Autor: {self.autor_post.ljust(50, ' ')}{self.fecha}")
             yield Static()
 
             # Contenido de la publicación
@@ -33,7 +32,7 @@ class PublicacionWidget(Container):
 
             # Acciones (me gusta, comentarios)
             with Horizontal():
-                if self.id_usuario in self.reacciones:
+                if self.autor in self.reacciones:
                     ml = " Me gusta"
                 else:
                     ml = ""
@@ -80,7 +79,7 @@ class PublicacionWidget(Container):
             comments_box = CommentBox(
                 pub_id=self.pub_id,
                 comments=self.comentarios_data,
-                user_id=self.id_usuario,
+                autor=self.autor,
                 id="comments-box"
             )
             self.mount(comments_box)

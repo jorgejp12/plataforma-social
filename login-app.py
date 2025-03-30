@@ -79,8 +79,7 @@ class LoginRegistrationScreen(App):
                 login_message.update("✔️ Login exitoso")
                 
                 # Cerrar la pantalla actual de login
-                self.push_screen(PlataformaApp(usuario,usuario))
-
+                self.push_screen(PlataformaApp(usuario,usuario, self.interfaz_visitar_perfil, self.cerra_sesion))
                 # Iniciar la plataforma social
        
             else:
@@ -109,7 +108,18 @@ class LoginRegistrationScreen(App):
         return bool(re.match(patron, email))
 
    
-
+    def interfaz_visitar_perfil(self, perfil, autor):
+        self.pop_screen()
+        self.push_screen(PlataformaApp(perfil,autor, self.interfaz_visitar_perfil, self.cerra_sesion))
     
+    def cerra_sesion(self, usuario):
+        cambiar_estado(usuario)
+
+        self.pop_screen()
+
+        self.query_one("#login_message", Label).update("✔️ Cerrado de sesión exitoso")
+
+            
+        
 if __name__ == "__main__":
     LoginRegistrationScreen().run()

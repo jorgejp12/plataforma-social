@@ -132,6 +132,9 @@ def actualizar_likes(pub_id,reacciones,likes):
     })
 
 def guardar_comentario(pub_id: str, usuario_id: str, texto: str):
+    id_comentario = len(fb_db.read_record(f'publicaciones/{pub_id}/comentarios') or [])
+
+
     """Guarda un comentario en la base de datos"""
     nuevo_comentario = {
         'autor': usuario_id,
@@ -140,7 +143,7 @@ def guardar_comentario(pub_id: str, usuario_id: str, texto: str):
     }
 
     # Actualiza la base de datos con el nuevo comentario
-    fb_db.update_record(f'publicaciones/{pub_id}/comentarios', nuevo_comentario)
+    fb_db.update_record(f'publicaciones/{pub_id}/comentarios/{id_comentario}', nuevo_comentario)
 
 
 

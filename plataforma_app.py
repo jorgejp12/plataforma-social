@@ -92,10 +92,12 @@ class PlataformaApp(Screen):
     }
     """
 
-    def __init__(self, id_usuario, id_usuario_v):
+    def __init__(self, perfil, autor, visitar_perfil, cerra_sesion):
 
-        self.id_usuario = id_usuario
-        self.id_usuario_v = id_usuario_v
+        self.perfil = perfil
+        self.autor = autor
+        self.visitar_perfil = visitar_perfil
+        self.cerra_sesion = cerra_sesion
         self.timer_actualizar: Timer | None = None  # Inicializa el temporizador
         super().__init__()
 
@@ -104,7 +106,7 @@ class PlataformaApp(Screen):
         self.timer_actualizar = self.set_interval(5.0, self._actualizar_publicaciones)  # Ejecutar cada 10s
 
         usuarios = listar_gamers()
-        self.publicaciones = cargar_publicaciones(self.id_usuario)
+        self.publicaciones = cargar_publicaciones(self.perfil)
 
         with Horizontal():
             # Sección de Usuarios (Columna Izquierda)
@@ -118,9 +120,10 @@ class PlataformaApp(Screen):
                 yield from self._crear_seccion_publicacion()
    
                 yield from self._crear_lista_publicaciones(self.publicaciones)
+    
     async def _actualizar_publicaciones(self) -> None:
         """Agrega solo las publicaciones nuevas sin borrar las existentes."""
-        nuevas_publicaciones = cargar_publicaciones(self.id_usuario)
+        nuevas_publicaciones = cargar_publicaciones(self.perfil)
         contenedor = self.query_one("#contenedor-publicaciones")
 
         # Comparar publicaciones anteriores con las nuevas
@@ -128,13 +131,14 @@ class PlataformaApp(Screen):
             if pub_id not in self.publicaciones:  # Solo agregar si es nueva
                 publicacion = PublicacionWidget(
                     pub_id=pub_id,
-                    autor=post['autor'],
+                    autor_post=post['autor'],
+                    perfil=self.perfil,
+                    autor = self.autor,
                     contenido=post['contenido'],
                     fecha=post['fecha'],
                     likes=post.get('likes', 0),
                     comentarios=post.get('comentarios', 0),
-                    reacciones=post.get('reacciones', []),
-                    id_usuario=self.id_usuario
+                    reacciones=post.get('reacciones', [])
                 )
                 contenedor.mount(publicacion, before=contenedor.children[4] if contenedor.children else None)
 
@@ -142,15 +146,21 @@ class PlataformaApp(Screen):
         self.publicaciones = nuevas_publicaciones
 
     def _crear_lista_usuarios(self, usuarios: dict) -> Generator:
+        texto = f"🧘 Tu perfil: {self.autor}"
+        yield Button(texto, id=f"user_{self.autor}", classes="boton")
+        yield Button("🔐 Cerrar Sesión", id="cerrar_sesion_1", classes="boton")
+
         """Genera la lista de usuarios conectados"""
         for user_id, status in usuarios.items():
-            if user_id != self.id_usuario:
+            if user_id != self.autor:
                 estado = "🟢" if status == 1 else "🔴"
                 texto = f"👤 {user_id} {estado}"
                 yield Button(texto, id=f"user_{user_id}", classes="boton")
 
+
     def _crear_seccion_publicacion(self) -> Generator:
         """Crea la sección para escribir nuevas publicaciones"""
+        yield Label(self.perfil, id="pefil")
         yield Input(
             placeholder="✏️ Escribe tu publicación (máx 300 caracteres)", 
             id="post-input"
@@ -174,13 +184,14 @@ class PlataformaApp(Screen):
              
             publicacion = PublicacionWidget(
                 pub_id=pub_id,
-                autor=post['autor'],
+                autor_post=post['autor'],
+                perfil=self.perfil,
+                autor =self.autor,
                 contenido=post['contenido'],
                 fecha=post['fecha'],
                 likes=post.get('likes', 0),
                 comentarios=post.get('comentarios', 0),
-                reacciones=post.get('reacciones', []),
-                id_usuario=self.id_usuario
+                reacciones=post.get('reacciones', [])                
             )
             yield publicacion
      
@@ -192,6 +203,9 @@ class PlataformaApp(Screen):
         elif event.button.id.startswith("user_"):
             user_id = event.button.id[5:]
             self.notify(f"Usuario seleccionado: {user_id}")
+            self.visitar_perfil(user_id,self.autor)
+        elif event.button.id == "cerrar_sesion_1":
+            self.cerra_sesion(self.autor)
 
     def _manejar_publicacion(self):
         """Maneja la creación de nuevas publicaciones"""
@@ -207,7 +221,7 @@ class PlataformaApp(Screen):
             return
 
         # Guardar publicación
-        nueva_publicacion,id_post = guardar_publicacion(self.id_usuario, contenido, self.id_usuario_v)
+        nueva_publicacion,id_post = guardar_publicacion(self.perfil, contenido, self.autor)
         
         if nueva_publicacion:
             self.query_one("#feedback", Label).update(f"✅ Publicado: '{contenido[:20]}...'")
@@ -218,24 +232,34 @@ class PlataformaApp(Screen):
             contenedor.mount(
                 PublicacionWidget(
                     pub_id=id_post,
-                    autor=self.id_usuario_v,
+                    autor_post=self.autor,
+                    perfil=self.perfil,
+                    autor=self.autor,
                     contenido=contenido,
                     fecha=nueva_publicacion["fecha"],
                     likes=0,
                     comentarios=[],
                     reacciones=[],
-                    id_usuario=self.id_usuario
+                    
                 ),
                 before=contenedor.children[4] if contenedor.children else None
             )
-            self.publicaciones = cargar_publicaciones(self.id_usuario)
+            self.publicaciones = cargar_publicaciones(self.perfil)
 
     
-class MiAplicacion(App):
+class MiAplicacion(Screen):
     """App principal que maneja las pantallas"""
+    def __init__(self, perfil, autor):
+        self.perfil = perfil
+        self.autor = autor
+
+        super().__init__()
 
     def on_mount(self):
-        self.push_screen(PlataformaApp("leon_123l", "jfleong6"))
+        self.push_screen(PlataformaApp(self.perfil, self.autor, self.interfaz_visitar_perfil))
+        
+    def interfaz_visitar_perfil(self, perfil, autor):
+        self.push_screen(PlataformaApp(perfil,autor, self.interfaz_visitar_perfil))
 
 if __name__ == "__main__":
-    MiAplicacion().run()
+    MiAplicacion("jfleong6","jfleong6").run()
